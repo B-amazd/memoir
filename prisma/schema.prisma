@@ -6,6 +6,180 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id        String     @id @default(cuid())
+  clerkId   String     @unique
+  email     String     @unique
+  role      UserRole   @default(USER)
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  fullName  String?
+  portfolio Portfolio?
+}
+
+model Portfolio {
+  id                String     @id @default(cuid())
+  userId            String     @unique
+  businessName      String
+  slug              String     @unique
+  description       String?
+  heroTitle         String?
+  heroSubtitle      String?
+  logoUrl           String?
+  logoPublicId      String?
+  heroImageUrl      String?
+  heroImagePublicId String?
+  phone             String?
+  email             String?
+  instagram         String?
+  facebook          String?
+  linkedin          String?
+  website           String?
+  customDomain      String?    @unique
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  categories        Category[]
+  clients           Client[]
+  user              User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projects          Project[]
+  reviews           Review[]
+  services          Service[]
+
+  @@index([slug])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  portfolioId String
+  name        String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  projects    Project[]
+
+  @@unique([portfolioId, name])
+  @@index([portfolioId])
+}
+
+model Service {
+  id          String    @id @default(cuid())
+  portfolioId String
+  title       String
+  description String?
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  portfolio   Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@unique([portfolioId, title])
+  @@index([portfolioId])
+}
+
+model Project {
+  id          String         @id @default(cuid())
+  portfolioId String
+  categoryId  String?
+  title       String
+  description String?
+  isPublished Boolean        @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  category    Category?      @relation(fields: [categoryId], references: [id])
+  portfolio   Portfolio      @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  media       ProjectMedia[]
+
+  @@index([portfolioId])
+  @@index([categoryId])
+}
+
+model ProjectMedia {
+  id        String    @id @default(cuid())
+  projectId String
+  url       String
+  publicId  String
+  mediaType MediaType
+  width     Int?
+  height    Int?
+  altText   String?
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now())
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+}
+
+model Client {
+  id            String       @id @default(cuid())
+  portfolioId   String
+  displayName   String
+  clientType    ClientType   @default(individual)
+  contactPerson String?
+  email         String?
+  phone         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  portfolio     Portfolio    @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  clientPages   ClientPage[]
+
+  @@index([portfolioId])
+}
+
+model ClientPage {
+  id          String        @id @default(cuid())
+  clientId    String
+  slug        String        @unique
+  title       String
+  eventDate   DateTime?
+  message     String?
+  isPublished Boolean       @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  media       ClientMedia[]
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  reviews     Review[]
+
+  @@index([slug, isPublished])
+  @@index([clientId])
+}
+
+model ClientMedia {
+  id           String     @id @default(cuid())
+  clientPageId String
+  url          String
+  publicId     String
+  mediaType    MediaType
+  width        Int?
+  height       Int?
+  altText      String?
+  sortOrder    Int        @default(0)
+  createdAt    DateTime   @default(now())
+  clientPage   ClientPage @relation(fields: [clientPageId], references: [id], onDelete: Cascade)
+
+  @@index([clientPageId])
+}
+
+model Review {
+  id           String       @id @default(cuid())
+  portfolioId  String
+  clientPageId String
+  reviewerName String
+  rating       Int
+  review       String
+  status       ReviewStatus @default(pending)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  clientPage   ClientPage   @relation(fields: [clientPageId], references: [id], onDelete: Cascade)
+  portfolio    Portfolio    @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+
+  @@index([portfolioId])
+  @@index([clientPageId])
+  @@index([status])
+  @@index([portfolioId, status])
+}
+
 enum UserRole {
   ADMIN
   MODERATOR
@@ -26,252 +200,4 @@ enum ReviewStatus {
   pending
   approved
   rejected
-}
-
-model User {
-  id      String @id @default(cuid())
-  clerkId String @unique
-  email   String @unique
-  fullName  String?
-
-  role     UserRole @default(USER)
-  isActive Boolean  @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  portfolio Portfolio?
-}
-
-model Portfolio {
-  id String @id @default(cuid())
-
-  userId String @unique
-
-  businessName String
-  slug         String @unique
-
-  description String?
-
-  heroTitle    String?
-  heroSubtitle String?
-
-  logoUrl      String?
-  logoPublicId String?
-
-  heroImageUrl      String?
-  heroImagePublicId String?
-
-  phone String?
-  email String?
-
-  instagram String?
-  facebook  String?
-  linkedin  String?
-  website   String?
-
-  customDomain String? @unique
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  categories Category[]
-  services   Service[]
-  projects   Project[]
-  clients    Client[]
-  reviews    Review[]
-
-  @@index([slug])
-}
-
-model Category {
-  id String @id @default(cuid())
-
-  portfolioId String
-
-  name String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
-
-  projects Project[]
-
-  @@unique([portfolioId, name])
-  @@index([portfolioId])
-}
-
-model Service {
-  id String @id @default(cuid())
-
-  portfolioId String
-
-  title       String
-  description String?
-
-  sortOrder Int @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
-
-  @@unique([portfolioId, title])
-  @@index([portfolioId])
-}
-
-model Project {
-  id String @id @default(cuid())
-
-  portfolioId String
-  categoryId  String?
-
-  title       String
-  description String?
-
-  isPublished Boolean   @default(false)
-  publishedAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
-
-  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-
-  media ProjectMedia[]
-
-  @@index([portfolioId])
-  @@index([categoryId])
-}
-
-model ProjectMedia {
-  id String @id @default(cuid())
-
-  projectId String
-
-  url      String
-  publicId String
-
-  mediaType MediaType
-
-  width  Int?
-  height Int?
-
-  altText String?
-
-  sortOrder Int @default(0)
-
-  createdAt DateTime @default(now())
-
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId])
-}
-
-model Client {
-  id String @id @default(cuid())
-
-  portfolioId String
-
-  displayName String
-
-  clientType ClientType @default(individual)
-
-  contactPerson String?
-
-  email String?
-  phone String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
-
-  clientPages ClientPage[]
-
-  @@index([portfolioId])
-}
-
-model ClientPage {
-  id String @id @default(cuid())
-
-  clientId String
-
-  slug String @unique
-
-  title String
-
-  eventDate DateTime?
-
-  message String?
-
-  isPublished Boolean   @default(false)
-  publishedAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
-
-  media ClientMedia[]
-
-  reviews Review[]
-
-  @@index([slug, isPublished])
-  @@index([clientId])
-}
-
-model ClientMedia {
-  id String @id @default(cuid())
-
-  clientPageId String
-
-  url      String
-  publicId String
-
-  mediaType MediaType
-
-  width  Int?
-  height Int?
-
-  altText String?
-
-  sortOrder Int @default(0)
-
-  createdAt DateTime @default(now())
-
-  clientPage ClientPage @relation(fields: [clientPageId], references: [id], onDelete: Cascade)
-
-  @@index([clientPageId])
-}
-
-model Review {
-  id String @id @default(cuid())
-
-  portfolioId  String
-  clientPageId String
-
-  reviewerName String
-
-  rating Int
-
-  review String
-
-  status ReviewStatus @default(pending)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  portfolio Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
-
-  clientPage ClientPage @relation(fields: [clientPageId], references: [id], onDelete: Cascade)
-
-  @@index([portfolioId])
-  @@index([clientPageId])
-  @@index([status])
-  @@index([portfolioId, status])
 }
