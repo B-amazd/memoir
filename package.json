@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@base-ui/react": "^1.5.0",
@@ -22,6 +24,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^1.18.0",
     "next": "16.2.7",
+    "next-cloudinary": "^6.17.5",
     "pg": "^8.21.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -32,14 +35,27 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@chromatic-com/storybook": "^5.2.1",
+    "@storybook/addon-a11y": "^10.4.6",
+    "@storybook/addon-docs": "^10.4.6",
+    "@storybook/addon-mcp": "^0.6.0",
+    "@storybook/addon-vitest": "^10.4.6",
+    "@storybook/nextjs-vite": "^10.4.6",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/browser-playwright": "^4.1.9",
+    "@vitest/coverage-v8": "^4.1.9",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
+    "eslint-plugin-storybook": "^10.4.6",
+    "playwright": "^1.61.0",
     "prisma": "^7.8.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.9"
   }
 }

@@ -1,10 +1,9 @@
 @import "tailwindcss";
+@source "../src";
 
 :root {
   --background: #ffffff;
   --foreground: #111111;
-
-  /* Memoir Brand Tokens */
   --memoir-black: #111111;
   --memoir-ivory: #F7F4EF;
   --memoir-gold: #C6A46C;
@@ -15,21 +14,50 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-
-  /* Memoir Colors */
   --color-memoir-black: var(--memoir-black);
   --color-memoir-ivory: var(--memoir-ivory);
   --color-memoir-gold: var(--memoir-gold);
   --color-memoir-burgundy: var(--memoir-burgundy);
   --color-memoir-gray: var(--memoir-gray);
-
-  /* Typography */
   --font-sans: 'Inter', system-ui, sans-serif;
-  --font-heading: 'Cormorant Garamond', Georgia, serif;
+  --font-heading: 'Georgia', Cormorant Garamond, serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill {
+  -webkit-text-fill-color: white !important;
+
+  -webkit-box-shadow: 0 0 0px 1000px rgba(255,255,255,0.03) inset !important;
+
+  transition: background-color 9999s ease-in-out 0s;
+
+  caret-color: white;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: white !important;
+
+  -webkit-box-shadow:
+    0 0 0px 1000px rgba(255,255,255,0.03) inset,
+    0 0 0px 1px rgba(198,164,108,0.15) !important;
+
+  caret-color: white;
+
+  transition: background-color 9999s ease-in-out 0s;
 }
