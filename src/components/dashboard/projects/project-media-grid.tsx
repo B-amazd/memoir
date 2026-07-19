@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from 'react'
 import { uploadProjectMedia, deleteProjectMedia } from '@/actions/project-media'
 import { useToast } from '@/lib/toast'
+import { compressImage } from '@/lib/compress-image'
 
 interface MediaItem {
   id: string
@@ -24,28 +25,30 @@ export function ProjectMediaGrid({ projectId, initialMedia }: ProjectMediaGridPr
   const [media, setMedia] = useState<OptimisticItem[]>(initialMedia)
   const { showToast } = useToast()
 
-  function handleFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
     if (files.length === 0) return
 
-    files.forEach((file) => {
-      if (file.size > 10 * 1024 * 1024) {
-        showToast('Each file must be under 10MB', 'error')
-        return
+    for (const file of files) {
+      const isVideo = file.type.startsWith('video/')
+      const sizeLimit = isVideo ? 50 * 1024 * 1024 : 20 * 1024 * 1024
+
+      if (file.size > sizeLimit) {
+        showToast(`${isVideo ? 'Video' : 'Image'} must be under ${isVideo ? '50MB' : '20MB'}`, 'error')
+        continue
       }
 
       const tempId = `temp-${Math.random().toString(36).slice(2)}`
       const localUrl = URL.createObjectURL(file)
-      const isVideo = file.type.startsWith('video/')
 
-      // Optimistic insert — shows instantly
       setMedia((prev) => [
         ...prev,
         { id: tempId, url: localUrl, mediaType: isVideo ? 'video' : 'image', isUploading: true },
       ])
 
+      const fileToUpload = isVideo ? file : await compressImage(file)
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', fileToUpload)
 
       uploadProjectMedia(projectId, formData).then((result) => {
         if (result.success && result.media) {
@@ -57,7 +60,7 @@ export function ProjectMediaGrid({ projectId, initialMedia }: ProjectMediaGridPr
           showToast(result.error ?? 'Upload failed', 'error')
         }
       })
-    })
+    }
 
     e.target.value = ''
   }

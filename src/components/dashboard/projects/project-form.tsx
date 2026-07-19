@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { GlassCard, SectionHeader } from '@/components/ui/glass-card'
 import { Field, Input, Textarea } from '@/components/ui/field'
 import { ToggleSwitch } from '@/components/ui/toggle-switch'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 interface Category {
   id: string
@@ -89,20 +90,22 @@ export function ProjectForm({ categories, project }: ProjectFormProps) {
     })
   }
 
-  function handleDelete() {
-    if (!createdProjectId) return
-    if (!confirm('Delete this project? This cannot be undone.')) return
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-    startTransition(async () => {
-      const result = await deleteProject(createdProjectId)
-      if (result.success) {
-        showToast('Project deleted')
-        router.push('/dashboard/projects')
-      } else {
-        setErrorMsg(result.error ?? 'Failed to delete project')
-      }
-    })
-  }
+    function handleDelete() {
+      if (!createdProjectId) return
+
+      startTransition(async () => {
+        const result = await deleteProject(createdProjectId)
+        if (result.success) {
+          showToast('Project deleted')
+          router.push('/dashboard/projects')
+        } else {
+          setErrorMsg(result.error ?? 'Failed to delete project')
+          setShowDeleteConfirm(false)
+        }
+      })
+    }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-2xl">
@@ -172,9 +175,20 @@ export function ProjectForm({ categories, project }: ProjectFormProps) {
 
         <div className="flex items-center gap-3">
           {isEditMode && (
-            <Button type="button" variant="premium-danger" disabled={isPending} onClick={handleDelete}>
+          <>
+            <Button type="button" variant="premium-danger" disabled={isPending} onClick={() => setShowDeleteConfirm(true)}>
               Delete
             </Button>
+            <ConfirmDialog
+              open={showDeleteConfirm}
+              title="Delete this project?"
+              description="This will permanently delete the project and all its media. This cannot be undone."
+              confirmLabel="Delete Project"
+              isPending={isPending}
+              onConfirm={handleDelete}
+              onCancel={() => setShowDeleteConfirm(false)}
+            />
+          </>
           )}
           <Button type="submit" variant="premium" size="xl" disabled={isPending}>
             {isPending ? 'Saving...' : isEditMode ? 'Save Changes' : 'Create Project'}

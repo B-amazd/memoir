@@ -122,6 +122,8 @@ model Client {
   contactPerson String?
   email         String?
   phone         String?
+  coverImageUrl       String?
+  coverImagePublicId  String?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   portfolio     Portfolio    @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
@@ -142,6 +144,7 @@ model ClientPage {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   media       ClientMedia[]
+  mediaCategories ClientMediaCategory[]
   client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
   reviews     Review[]
 
@@ -149,20 +152,37 @@ model ClientPage {
   @@index([clientId])
 }
 
+model ClientMediaCategory {
+  id           String        @id @default(cuid())
+  clientPageId String
+  name         String
+  sortOrder    Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  clientPage   ClientPage    @relation(fields: [clientPageId], references: [id], onDelete: Cascade)
+  media        ClientMedia[]
+
+  @@unique([clientPageId, name])
+  @@index([clientPageId])
+}
+
 model ClientMedia {
-  id           String     @id @default(cuid())
+  id           String                @id @default(cuid())
   clientPageId String
   url          String
   publicId     String
   mediaType    MediaType
+  categoryId   String?
   width        Int?
   height       Int?
   altText      String?
-  sortOrder    Int        @default(0)
-  createdAt    DateTime   @default(now())
-  clientPage   ClientPage @relation(fields: [clientPageId], references: [id], onDelete: Cascade)
+  sortOrder    Int                   @default(0)
+  createdAt    DateTime              @default(now())
+  clientPage   ClientPage            @relation(fields: [clientPageId], references: [id], onDelete: Cascade)
+  category     ClientMediaCategory?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   @@index([clientPageId])
+  @@index([categoryId])
 }
 
 model Review {

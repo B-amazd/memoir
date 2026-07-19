@@ -1,20 +1,14 @@
+import { Suspense } from 'react'
 import { getProjects } from '@/actions/project'
 import { getCurrentUser } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { GlassCard } from '@/components/ui/glass-card'
+import { SkeletonGrid } from '@/components/ui/skeleton-card'
 
-const cardStyle = {
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.09)',
-  borderRadius: '16px',
-  backdropFilter: 'blur(24px)',
-  WebkitBackdropFilter: 'blur(24px)',
-  boxShadow: '0 4px 28px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
-} as React.CSSProperties
-
-export default async function ProjectsPage() {
+async function ProjectsContent() {
   const [projects, user] = await Promise.all([getProjects(), getCurrentUser()])
 
   const portfolio = user
@@ -22,7 +16,7 @@ export default async function ProjectsPage() {
     : null
 
   return (
-    <div className="w-full py-4">
+    <>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="border-l-[3px] border-[#C6A46C] pl-4">
           <h1 className="text-3xl font-bold text-white">Projects</h1>
@@ -33,14 +27,14 @@ export default async function ProjectsPage() {
 
         <div className="flex items-center gap-3">
           {portfolio?.slug && (
-            <a
+            <Link
               href={`/p/${portfolio.slug}`}
               target="_blank"
               rel="noopener noreferrer"
               className={cn(buttonVariants({ variant: 'premium-outline' }), 'flex-1 sm:flex-initial')}
             >
               👁 View Profile
-            </a>
+            </Link>
           )}
           <Link
             href="/dashboard/projects/new"
@@ -52,7 +46,7 @@ export default async function ProjectsPage() {
       </div>
 
       {projects.length === 0 ? (
-        <div style={cardStyle} className="p-12 text-center">
+        <GlassCard className="p-12 text-center">
           <p className="text-white/40 text-sm mb-4">No projects yet.</p>
           <Link
             href="/dashboard/projects/new"
@@ -60,15 +54,21 @@ export default async function ProjectsPage() {
           >
             Create your first project
           </Link>
-        </div>
+        </GlassCard>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {projects.map((project) => (
             <Link
               key={project.id}
               href={`/dashboard/projects/${project.id}/edit`}
-              style={cardStyle}
-              className="overflow-hidden group hover:-translate-y-1 hover:border-[#C6A46C]/25 active:scale-[0.98] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A46C]/40"
+              className="overflow-hidden rounded-2xl group hover:-translate-y-1 hover:border-[#C6A46C]/25 active:scale-[0.98] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C6A46C]/40"
+              style={{
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.09)',
+                backdropFilter: 'blur(24px)',
+                WebkitBackdropFilter: 'blur(24px)',
+                boxShadow: '0 4px 28px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)',
+              }}
             >
               <div className="p-4 flex items-center gap-3 border-b border-white/[0.06]">
                 <div
@@ -121,6 +121,16 @@ export default async function ProjectsPage() {
           ))}
         </div>
       )}
+    </>
+  )
+}
+
+export default function ProjectsPage() {
+  return (
+    <div className="w-full py-4">
+      <Suspense fallback={<SkeletonGrid count={3} height="h-72" />}>
+        <ProjectsContent />
+      </Suspense>
     </div>
   )
 }

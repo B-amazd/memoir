@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from 'react'
 import { uploadProjectCover, removeProjectCover } from '@/actions/project-cover'
 import { useToast } from '@/lib/toast'
+import { compressImage } from '@/lib/compress-image'
 
 interface ProjectCoverUploadProps {
   projectId: string
@@ -15,20 +16,21 @@ export function ProjectCoverUpload({ projectId, currentUrl }: ProjectCoverUpload
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentUrl)
   const { showToast } = useToast()
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
 
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('Image must be under 5MB', 'error')
+    if (file.size > 20 * 1024 * 1024) {
+      showToast('Image must be under 20MB', 'error')
       return
     }
 
     const localPreview = URL.createObjectURL(file)
     setPreviewUrl(localPreview)
 
+    const compressedFile = await compressImage(file)
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append('file', compressedFile)
 
     startTransition(async () => {
       const result = await uploadProjectCover(projectId, formData)

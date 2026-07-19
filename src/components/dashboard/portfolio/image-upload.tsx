@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { uploadPortfolioImage, removePortfolioImage } from '@/actions/upload'
+import { compressImage } from '@/lib/compress-image'
 
 interface ImageUploadProps {
   target: 'logo' | 'hero'
@@ -16,22 +17,21 @@ export function ImageUpload({ target, currentUrl, label, aspectHint }: ImageUplo
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentUrl)
   const [error, setError] = useState<string | null>(null)
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
 
-    setError(null)
-
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image must be under 5MB')
+    if (file.size > 20 * 1024 * 1024) {
+      setError('Image must be under 20MB')
       return
     }
 
     const localPreview = URL.createObjectURL(file)
     setPreviewUrl(localPreview)
 
+    const compressedFile = await compressImage(file)
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append('file', compressedFile)
 
     startTransition(async () => {
       const result = await uploadPortfolioImage(formData, target)

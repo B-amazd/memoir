@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from 'react'
 import { uploadProjectBanner, removeProjectBanner } from '@/actions/project-banner'
 import { useToast } from '@/lib/toast'
+import { compressImage } from '@/lib/compress-image'
 
 interface ProjectBannerUploadProps {
   projectId: string
@@ -15,20 +16,21 @@ export function ProjectBannerUpload({ projectId, currentUrl }: ProjectBannerUplo
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentUrl)
   const { showToast } = useToast()
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
 
-    if (file.size > 8 * 1024 * 1024) {
-      showToast('Image must be under 8MB', 'error')
+    if (file.size > 20 * 1024 * 1024) {
+      showToast('Image must be under 20MB', 'error')
       return
     }
 
     const localPreview = URL.createObjectURL(file)
     setPreviewUrl(localPreview)
 
+    const compressedFile = await compressImage(file, { maxDimension: 1200 })
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append('file', compressedFile)
 
     startTransition(async () => {
       const result = await uploadProjectBanner(projectId, formData)

@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { syncUser } from '@/lib/sync-user'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
@@ -6,7 +7,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
-export default async function PortfolioSettingsPage() {
+async function PortfolioContent() {
   const user = await syncUser()
   if (!user) redirect('/sign-in')
 
@@ -31,7 +32,7 @@ export default async function PortfolioSettingsPage() {
   }
 
   return (
-    <div className="w-full py-4">
+    <>
       <div className="flex items-center justify-between mb-4">
         <Link href="/dashboard" className={cn(buttonVariants({ variant: 'premium-ghost' }))}>
           Back to Overview
@@ -53,7 +54,43 @@ export default async function PortfolioSettingsPage() {
           Manage your public portfolio settings and information.
         </p>
       </div>
+
       <PortfolioForm portfolio={portfolio} stats={stats} />
+    </>
+  )
+}
+
+export default function PortfolioSettingsPage() {
+  return (
+    <div className="w-full py-4">
+      <Suspense fallback={<DashboardSkeleton />}>
+        <PortfolioContent />
+      </Suspense>
+    </div>
+  )
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="flex flex-col xl:grid xl:grid-cols-[1fr_320px] gap-6">
+      <div className="space-y-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="h-40 rounded-2xl animate-pulse"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)' }}
+          />
+        ))}
+      </div>
+      <div className="space-y-4">
+        {[1, 2].map((i) => (
+          <div
+            key={i}
+            className="h-48 rounded-2xl animate-pulse"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)' }}
+          />
+        ))}
+      </div>
     </div>
   )
 }

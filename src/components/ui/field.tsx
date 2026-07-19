@@ -19,7 +19,7 @@ interface FieldProps {
 export function Field({ label, hint, error, children }: FieldProps) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-[10px] font-semibold text-white/30 uppercase tracking-[0.1em]">
+      <label className="block text-[10px] font-semibold text-white/60 uppercase tracking-[0.1em]">
         {label}
       </label>
       {children}
